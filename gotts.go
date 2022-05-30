@@ -57,7 +57,7 @@ func (speech *Speech) PlaySpeechFile(fileName string) error {
 }
 
 func (speech *Speech) deleteFile(fileName string) {
-	path, err := os.Executable()
+	path, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
 	}
