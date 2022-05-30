@@ -32,7 +32,7 @@ func (p *BeepPlayer) Play(fileName string) error {
 	if err != nil {
 		return err
 	}
-
+	defer f.Close()
 	streamer, format, err := mp3.Decode(f)
 	if err != nil {
 		return err
