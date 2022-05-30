@@ -15,7 +15,7 @@ import (
  *
  * Use:
  *
- * speech := htgotts.Speech{Folder: "audio", Language: "en"}
+ * speech := htgotts.Speech{Folder: "audio", Language: "en", Volume: 0, Speed: 1}
  */
 
 // Speech struct
