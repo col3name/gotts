@@ -15,7 +15,9 @@ import (
  *
  * Use:
  *
- * speech := htgotts.Speech{Folder: "audio", Language: "en", Volume: 0, Speed: 1}
+ *  speech :+Speech{Folder: "audio", Language: voices.EnglishUK, Volume: 0, Speed: 1}
+ * or
+ * 	speech := NewSpeech(voices.Japanese, 0)
  */
 
 // Speech struct
@@ -25,6 +27,12 @@ type Speech struct {
 	Handler  handlers.PlayerInterface
 	Volume   float64
 	Speed    float64
+}
+
+const AudioFolder = "audio"
+
+func NewSpeech(language string, volume float64) *Speech {
+	return &Speech{Folder: AudioFolder, Language: language, Volume: volume, Speed: 1}
 }
 
 // Creates a speech file with a given name
@@ -95,25 +103,26 @@ func (speech *Speech) createFolderIfNotExists(folder string) error {
 func (speech *Speech) downloadIfNotExists(fileName string, text string) error {
 	f, err := os.Open(fileName)
 	if err != nil {
-		urlString := fmt.Sprintf("http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=0&textlen=32&client=tw-ob&q=%s&tl=%s", url.QueryEscape(text), speech.Language)
-		fmt.Println(urlString)
-		response, err := http.Get(urlString)
-		if err != nil {
-			return err
-		}
-		defer response.Body.Close()
+		return nil
+	}
+	defer f.Close()
+	response, err := http.Get(speech.getTranslatedFileURL(text))
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
 
-		output, err := os.Create(fileName)
-		if err != nil {
-			return err
-		}
-
-		_, err = io.Copy(output, response.Body)
+	output, err := os.Create(fileName)
+	if err != nil {
 		return err
 	}
 
-	defer f.Close()
-	return nil
+	_, err = io.Copy(output, response.Body)
+	return err
+}
+
+func (speech *Speech) getTranslatedFileURL(text string) string {
+	return fmt.Sprintf("http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=0&textlen=32&client=tw-ob&q=%s&tl=%s", url.QueryEscape(text), speech.Language)
 }
 
 func (speech *Speech) generateHashName(name string) string {

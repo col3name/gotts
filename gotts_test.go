@@ -24,7 +24,7 @@ func TestSpeech_Speak_voice_UkEnglish(t *testing.T) {
 }
 
 func TestSpeech_Speak_voice_Japanese(t *testing.T) {
-	speech := Speech{Folder: "audio", Language: voices.Japanese, Volume: 0, Speed: 1}
+	speech := NewSpeech(voices.Japanese, 0)
 	err := speech.Speak("Test")
 	if err != nil {
 		log.Fatal(err)
