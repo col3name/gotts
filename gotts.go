@@ -36,18 +36,18 @@ func NewSpeech(language string, volume float64) *Speech {
 }
 
 func (speech *Speech) CreateSpeechFile(text string, fileName string) (string, error) {
-	var err error
-
-	f := speech.Folder + "/" + fileName + ".mp3"
-	if err = speech.createFolderIfNotExists(speech.Folder); err != nil {
+	err := speech.createFolderIfNotExists(speech.Folder)
+	if err != nil {
 		return "", err
 	}
 
-	if err = speech.downloadIfNotExists(f, text); err != nil {
+	filePath := speech.Folder + "/" + fileName + ".mp3"
+	err = speech.downloadIfNotExists(filePath, text)
+	if err != nil {
 		return "", err
 	}
 
-	return f, nil
+	return filePath, nil
 }
 
 func (speech *Speech) PlaySpeechFile(fileName string) error {
@@ -98,20 +98,23 @@ func (speech *Speech) createFolderIfNotExists(folder string) error {
 func (speech *Speech) downloadIfNotExists(fileName string, text string) error {
 	f, err := os.Open(fileName)
 	if err != nil {
-		f, err = os.Create(fileName)
+		response, err := http.Get(speech.getTranslatedFileURL(text))
 		if err != nil {
 			return err
 		}
-	}
-	defer f.Close()
-	response, err := http.Get(speech.getTranslatedFileURL(text))
-	if err != nil {
+		defer response.Body.Close()
+
+		output, err := os.Create(fileName)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(output, response.Body)
 		return err
 	}
-	defer response.Body.Close()
 
-	_, err = io.Copy(f, response.Body)
-	return err
+	defer f.Close()
+	return nil
 }
 
 func (speech *Speech) getTranslatedFileURL(text string) string {
