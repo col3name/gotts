@@ -35,7 +35,6 @@ func NewSpeech(language string, volume float64) *Speech {
 	return &Speech{Folder: AudioFolder, Language: language, Volume: volume, Speed: 1}
 }
 
-// Creates a speech file with a given name
 func (speech *Speech) CreateSpeechFile(text string, fileName string) (string, error) {
 	var err error
 
@@ -51,7 +50,6 @@ func (speech *Speech) CreateSpeechFile(text string, fileName string) (string, er
 	return f, nil
 }
 
-// Plays an existent .mp3 file
 func (speech *Speech) PlaySpeechFile(fileName string) error {
 	if speech.Handler == nil {
 		speech.Handler = &handlers.BeepPlayer{Volume: speech.Volume, Speed: 1}
@@ -97,13 +95,13 @@ func (speech *Speech) createFolderIfNotExists(folder string) error {
 	return nil
 }
 
-/**
- * Download the voice file if does not exists.
- */
 func (speech *Speech) downloadIfNotExists(fileName string, text string) error {
 	f, err := os.Open(fileName)
 	if err != nil {
-		return nil
+		f, err = os.Create(fileName)
+		if err != nil {
+			return err
+		}
 	}
 	defer f.Close()
 	response, err := http.Get(speech.getTranslatedFileURL(text))
@@ -112,12 +110,7 @@ func (speech *Speech) downloadIfNotExists(fileName string, text string) error {
 	}
 	defer response.Body.Close()
 
-	output, err := os.Create(fileName)
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(output, response.Body)
+	_, err = io.Copy(f, response.Body)
 	return err
 }
 
